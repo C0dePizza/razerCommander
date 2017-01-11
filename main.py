@@ -24,6 +24,8 @@ refreshDevicesButton=builder.get_object('refreshDevicesButton')
 
 keyboardBox = builder.get_object("keyboardBox")
 gameModeSwitch = builder.get_object("gameModeSwitch")
+fnLockSwitch = builder.get_object("fnLockSwitch")
+fnLockLabel = builder.get_object("fnLockLabel")
 
 universalApplyButton.modify_bg(
     Gtk.StateFlags.NORMAL,
@@ -78,12 +80,14 @@ def updateDevicesConnected():
         keyboardBox.hide()
         noDevicesLabel.hide()
         gameModeSwitch.set_sensitive(True)
+        fnLockSwitch.set_sensitive(True)
         universalApplyButton.set_sensitive(True)
     else:
         print("no devices")
         mainBox.hide()
         noDevicesLabel.show()
         gameModeSwitch.set_sensitive(False)
+        fnLockSwitch.set_sensitive(False)
         universalApplyButton.set_sensitive(False)
 
 def refreshDevices():
@@ -234,6 +238,13 @@ def refreshFxList():
     else:
         gameModeIcon.hide()
         gameModeSwitch.hide()
+
+    if myrazerkb.hasFnToggle:
+        fnLockLabel.show()
+        fnLockSwitch.show()
+    else:
+        fnLockLabel.hide()
+        fnLockSwitch.hide()
 
     # selective hiding of switcher buttons
     stackButtons = mainStackSwitcherButtons.get_children()
@@ -575,6 +586,9 @@ class Handler:
             enableFXwSettings(currentFX)
         else:
             myrazerkb.enableFX(currentFX)
+
+    def on_fnLockSwitch_state_set(self, *args):
+        myrazerkb.setFnLock(not fnLockSwitch.get_state())
 
     def on_gameModeSwitch_state_set(self, *args):
         myrazerkb.toggleGameMode()

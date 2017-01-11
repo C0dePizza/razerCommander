@@ -1,5 +1,6 @@
 # probably not necessary vvvv
 import os
+import glob
 import io
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -37,6 +38,8 @@ class Device:
         if self.device.type != 'mouse':
             self.availableFX.append('custom')
         self.name = str(device.name)
+        self.devicePath = self.getDevicePath()
+        self.hasFnToggle = self.devicePath and os.path.exists(os.path.join(self.devicePath, 'fn_toggle'))
 
     # unfriendly fx list
     uFXList = [
@@ -59,6 +62,25 @@ class Device:
         toRun = command
         logging.info("running " + toRun)
         os.system(toRun)
+
+    # Get device path
+    def getDevicePath(self):
+        fmt = '{0:04X}:{1:04X}'.format(self.device._vid, self.device._pid)
+        driverPaths = glob.glob(os.path.join(
+            '/sys/bus/hid/drivers/razerkbd', '*:%s.*' % fmt
+        ))
+        for dp in driverPaths:
+            if os.path.exists(os.path.join(dp, 'device_type')):
+                return dp
+        logging.warning('Did not find device with specified VID:PID (%s)' % fmt)
+
+    # Write 1 or 0 to fn_toggle file
+    def setFnLock(self, value):
+        if self.hasFnToggle:
+            with open(os.path.join(self.devicePath, 'fn_toggle'), 'w') as f:
+                f.write(str(int(value)))
+        else:
+            logging.warning('Fn Lock is not available')
 
     # Breathing effect mode
     def enableRandomBreath(self):
